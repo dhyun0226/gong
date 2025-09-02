@@ -14,8 +14,21 @@ export const initDatabase = (): Promise<void> => {
             title TEXT NOT NULL,
             author TEXT NOT NULL,
             rating REAL NOT NULL CHECK (rating >= 0.0 AND rating <= 5.0),
-            startedDate TEXT NOT NULL
+            startedDate TEXT NOT NULL,
+            review TEXT
           );`
+        );
+
+        // Migration: Add review column if it doesn't exist
+        tx.executeSql(
+          `PRAGMA table_info(books);`,
+          [],
+          (_, { rows }) => {
+            const columns = rows._array.map(col => col.name);
+            if (!columns.includes('review')) {
+              tx.executeSql(`ALTER TABLE books ADD COLUMN review TEXT;`);
+            }
+          }
         );
 
         tx.executeSql(
@@ -63,11 +76,11 @@ export const initDatabase = (): Promise<void> => {
 
         // 초기 더미 데이터 (선택사항)
         tx.executeSql(
-          `INSERT OR IGNORE INTO books (id, title, author, rating, startedDate) 
+          `INSERT OR IGNORE INTO books (id, title, author, rating, startedDate, review) 
            VALUES 
-           ('demo-1', '데미안', '헤르만 헤세', 4.5, '2024-01-01'),
-           ('demo-2', '어린 왕자', '생텍쥐페리', 4.8, '2024-01-15'),
-           ('demo-3', '1984', '조지 오웰', 4.3, '2024-02-01');`
+           ('demo-1', '데미안', '헤르만 헤세', 4.5, '2024-01-01', '성장과 자아 찾기의 여정을 그린 명작'),
+           ('demo-2', '어린 왕자', '생텍쥐페리', 4.8, '2024-01-15', '어른들이 잊고 사는 소중한 것들에 대한 이야기'),
+           ('demo-3', '1984', '조지 오웰', 4.3, '2024-02-01', '감시 사회의 무서움을 생생하게 보여주는 소설');`
         );
 
         tx.executeSql(

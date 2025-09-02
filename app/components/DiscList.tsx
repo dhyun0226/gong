@@ -17,7 +17,7 @@ interface DiscListProps {
   onItemPress: (book: Book) => void;
 }
 
-const ITEM_HEIGHT = 48;
+const ITEM_HEIGHT = 60;
 const WINDOW_HEIGHT = Dimensions.get('window').height;
 const VISIBLE_ITEMS = Math.floor((WINDOW_HEIGHT - 200) / ITEM_HEIGHT);
 const CENTER_INDEX = Math.floor(VISIBLE_ITEMS / 2);
@@ -71,17 +71,31 @@ export const DiscList: React.FC<DiscListProps> = ({ books, onItemPress }) => {
         style={styles.leftItem}
         onPress={() => handleItemPress(book, index)}
       >
-        <Text
-          style={[
-            styles.bookTitle,
-            isFocused && styles.focusedText,
-            !isFocused && styles.dimmedText,
-          ]}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {book.title}
-        </Text>
+        <View>
+          <Text
+            style={[
+              styles.bookTitle,
+              isFocused && styles.focusedText,
+              !isFocused && styles.dimmedText,
+            ]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {book.title}
+          </Text>
+          {book.review && (
+            <Text
+              style={[
+                styles.bookReview,
+                !isFocused && styles.dimmedText,
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {book.review}
+            </Text>
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -164,6 +178,12 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: 16,
     color: colors.text,
+  },
+  bookReview: {
+    fontSize: 12,
+    color: colors.textDimmed,
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   rating: {
     fontSize: 16,

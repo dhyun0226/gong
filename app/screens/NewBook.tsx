@@ -29,6 +29,7 @@ export const NewBook: React.FC = () => {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [rating, setRating] = useState('');
+  const [review, setReview] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -48,6 +49,10 @@ export const NewBook: React.FC = () => {
       newErrors.rating = '별점은 0.0~5.0까지만 입력할 수 있어요';
     }
     
+    if (review.length > 80) {
+      newErrors.review = '한줄평은 80자 이내로 입력해주세요';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -60,7 +65,8 @@ export const NewBook: React.FC = () => {
         title: title.trim(),
         author: author.trim(),
         rating: parseFloat(rating),
-        startedDate: date.toISOString(),
+        registeredDate: date.toISOString(),
+        review: review.trim() || undefined,
       });
       
       navigation.replace('Home');
@@ -110,8 +116,18 @@ export const NewBook: React.FC = () => {
           keyboardType="decimal-pad"
         />
         
+        <FormField
+          label={`한줄평 (${review.length}/80)`}
+          value={review}
+          onChangeText={(text) => text.length <= 80 && setReview(text)}
+          error={errors.review}
+          placeholder="이 책에 대한 짧은 감상을 남겨보세요"
+          multiline
+          numberOfLines={2}
+        />
+        
         <View style={styles.dateContainer}>
-          <Text style={styles.label}>시작일</Text>
+          <Text style={styles.label}>등록일</Text>
           <TouchableOpacity
             style={styles.dateButton}
             onPress={() => setShowDatePicker(true)}

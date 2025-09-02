@@ -43,19 +43,20 @@ export const MonthlySummary: React.FC = () => {
   const loadMonthlyData = () => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
-    const startMs = new Date(year, month, 1).getTime();
-    const endMs = new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
+    const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
 
-    // 책별 모음 개수 조회
+    // 해당 월에 시작한 책과 전체 모음 개수 조회
     db.transaction((tx) => {
       tx.executeSql(
-        `SELECT b.id, b.title, b.rating, COUNT(e.id) AS moeum_count
+        `SELECT b.id, b.title, b.rating, b.review, 
+                COALESCE(COUNT(e.id), 0) AS moeum_count
          FROM books b
-         JOIN entries e ON e.book_id = b.id
-         WHERE e.created_at BETWEEN ? AND ?
-         GROUP BY b.id, b.title, b.rating
+         LEFT JOIN entries e ON e.book_id = b.id
+         WHERE date(b.startedDate) >= date(?) AND date(b.startedDate) <= date(?)
+         GROUP BY b.id, b.title, b.rating, b.review
          ORDER BY b.title COLLATE NOCASE ASC;`,
-        [startMs, endMs],
+        [startDate, endDate],
         (_, { rows }) => {
           const books = rows._array;
           
@@ -87,6 +88,10 @@ export const MonthlySummary: React.FC = () => {
     
     data.books.forEach((book) => {
       shareText += `${book.title} · ★${book.rating.toFixed(1)}  |  ${book.moeum_count}\n`;
+      if (book.review) {
+        shareText += `${book.review}\n`;
+      }
+      shareText += `\n`;
     });
 
     try {
@@ -148,14 +153,21 @@ export const MonthlySummary: React.FC = () => {
           <View style={styles.bookList}>
             {data.books.map((book) => (
               <View key={book.id} style={styles.bookRow}>
-                <View style={styles.bookInfo}>
-                  <Text style={styles.bookTitle} numberOfLines={1}>
-                    {book.title}
-                  </Text>
-                  <Text style={styles.bookRating}>★{book.rating.toFixed(1)}</Text>
+                <View style={styles.bookInfoContainer}>
+                  <View style={styles.bookInfo}>
+                    <Text style={styles.bookTitle} numberOfLines={1}>
+                      {book.title}
+                    </Text>
+                    <Text style={styles.bookRating}>★{book.rating.toFixed(1)}</Text>
+                  </View>
+                  <Text style={styles.separator}>|</Text>
+                  <Text style={styles.moeumCount}>{book.moeum_count}</Text>
                 </View>
-                <Text style={styles.separator}>|</Text>
-                <Text style={styles.moeumCount}>{book.moeum_count}</Text>
+                {book.review && (
+                  <Text style={styles.bookReview} numberOfLines={2}>
+                    {book.review}
+                  </Text>
+                )}
               </View>
             ))}
           </View>
@@ -212,11 +224,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   bookRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  bookInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   bookInfo: {
     flex: 1,
@@ -245,6 +259,12 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     width: 30,
     textAlign: 'right',
+  },
+  bookReview: {
+    fontSize: 12,
+    color: colors.textDimmed,
+    marginTop: 6,
+    fontStyle: 'italic',
   },
   emptyContainer: {
     paddingTop: 100,

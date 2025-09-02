@@ -9,6 +9,7 @@ interface BookStore {
   
   loadBooks: () => Promise<void>;
   addBook: (book: Omit<Book, 'id'>) => Promise<string>;
+  updateBook: (id: string, updates: Partial<Omit<Book, 'id'>>) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
   selectBook: (id: string | null) => void;
   getSelectedBook: () => Book | null;
@@ -37,6 +38,16 @@ export const useBookStore = create<BookStore>((set, get) => ({
       return id;
     } catch (error) {
       console.error('Failed to add book:', error);
+      throw error;
+    }
+  },
+
+  updateBook: async (id, updates) => {
+    try {
+      await BookRepository.update(id, updates);
+      await get().loadBooks();
+    } catch (error) {
+      console.error('Failed to update book:', error);
       throw error;
     }
   },

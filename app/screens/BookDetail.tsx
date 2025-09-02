@@ -20,6 +20,7 @@ import { Entry } from '../data/types';
 
 type RootStackParamList = {
   BookDetail: { bookId: string };
+  EditBook: { bookId: string };
   EditEntryModal: { bookId: string; entry?: Entry };
 };
 
@@ -87,18 +88,32 @@ export const BookDetail: React.FC = () => {
     );
   }
 
+  const handleEditBook = () => {
+    navigation.navigate('EditBook', { bookId });
+  };
+
   const renderCenterContent = () => (
     <View style={styles.headerInfo}>
-      <Text style={styles.bookTitle} numberOfLines={1}>
-        {book.title}
-      </Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.bookTitle} numberOfLines={1}>
+          {book.title}
+        </Text>
+        <TouchableOpacity onPress={handleEditBook} style={styles.editButton}>
+          <Text style={styles.editIcon}>✏️</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.metaRow}>
         <Text style={styles.author}>{book.author}</Text>
         <RatingBadge rating={book.rating} size="small" />
         <Text style={styles.date}>
-          {new Date(book.startedDate).toLocaleDateString('ko-KR')}
+          {new Date(book.registeredDate).toLocaleDateString('ko-KR')}
         </Text>
       </View>
+      {book.review && (
+        <Text style={styles.review} numberOfLines={2}>
+          {book.review}
+        </Text>
+      )}
     </View>
   );
 
@@ -195,16 +210,35 @@ const styles = StyleSheet.create({
   headerInfo: {
     alignItems: 'center',
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   bookTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
+  },
+  editButton: {
+    padding: 4,
+  },
+  editIcon: {
+    fontSize: 14,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  review: {
+    fontSize: 13,
+    color: colors.textDimmed,
+    marginTop: 8,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    paddingHorizontal: 20,
   },
   author: {
     fontSize: 12,

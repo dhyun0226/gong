@@ -3,7 +3,8 @@ export interface Book {
   title: string;
   author: string;
   rating: number;
-  startedDate: string;
+  registeredDate: string;
+  review?: string;
 }
 
 export interface Entry {

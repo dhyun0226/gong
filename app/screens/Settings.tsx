@@ -11,6 +11,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { TopBar } from '../components/TopBar';
 import { useSettingsStore } from '../store/useSettings';
+import { useBookStore } from '../store/useBooks';
+import { BackupService } from '../data/backup';
 import { colors } from '../theme/colors';
 
 interface SettingItemProps {
@@ -85,13 +87,42 @@ const SettingItem: React.FC<SettingItemProps> = ({
 export const Settings: React.FC = () => {
   const navigation = useNavigation();
   const settings = useSettingsStore();
+  const { loadBooks } = useBookStore();
 
-  const handleExport = () => {
-    Alert.alert('내보내기', '내보내기 기능은 준비 중입니다');
+  const handleExport = async () => {
+    try {
+      await BackupService.exportBackup();
+      Alert.alert('백업 완료', '데이터가 성공적으로 내보내졌습니다.');
+    } catch (error) {
+      Alert.alert('백업 실패', '데이터 내보내기에 실패했습니다.');
+      console.error('Export failed:', error);
+    }
   };
 
-  const handleImport = () => {
-    Alert.alert('가져오기', '가져오기 기능은 준비 중입니다');
+  const handleImport = async () => {
+    Alert.alert(
+      '데이터 가져오기',
+      '기존 데이터가 모두 삭제되고 백업 파일의 데이터로 대체됩니다. 계속하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '확인',
+          onPress: async () => {
+            try {
+              const success = await BackupService.importBackup();
+              if (success) {
+                await settings.loadSettings();
+                await loadBooks();
+                Alert.alert('복원 완료', '데이터가 성공적으로 복원되었습니다.');
+              }
+            } catch (error) {
+              Alert.alert('복원 실패', '데이터 가져오기에 실패했습니다.');
+              console.error('Import failed:', error);
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (

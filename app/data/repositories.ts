@@ -40,9 +40,57 @@ export class BookRepository {
     return new Promise((resolve, reject) => {
       db.transaction((tx) => {
         tx.executeSql(
-          'INSERT INTO books (id, title, author, rating, startedDate) VALUES (?, ?, ?, ?, ?);',
-          [id, book.title, book.author, book.rating, book.startedDate],
+          'INSERT INTO books (id, title, author, rating, startedDate, review) VALUES (?, ?, ?, ?, ?, ?);',
+          [id, book.title, book.author, book.rating, book.registeredDate, book.review || null],
           () => resolve(id),
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  }
+
+  static update(id: string, updates: Partial<Omit<Book, 'id'>>): Promise<void> {
+    return new Promise((resolve, reject) => {
+      db.transaction((tx) => {
+        const fields = [];
+        const values = [];
+        
+        if (updates.title !== undefined) {
+          fields.push('title = ?');
+          values.push(updates.title);
+        }
+        if (updates.author !== undefined) {
+          fields.push('author = ?');
+          values.push(updates.author);
+        }
+        if (updates.rating !== undefined) {
+          fields.push('rating = ?');
+          values.push(updates.rating);
+        }
+        if (updates.registeredDate !== undefined) {
+          fields.push('startedDate = ?');
+          values.push(updates.registeredDate);
+        }
+        if (updates.review !== undefined) {
+          fields.push('review = ?');
+          values.push(updates.review || null);
+        }
+        
+        if (fields.length === 0) {
+          resolve();
+          return;
+        }
+        
+        values.push(id);
+        const sql = `UPDATE books SET ${fields.join(', ')} WHERE id = ?;`;
+        
+        tx.executeSql(
+          sql,
+          values,
+          () => resolve(),
           (_, error) => {
             reject(error);
             return false;

@@ -11,6 +11,7 @@ import { colors } from './app/theme/colors';
 import { Home } from './app/screens/Home';
 import { NewBook } from './app/screens/NewBook';
 import { BookDetail } from './app/screens/BookDetail';
+import { EditBook } from './app/screens/EditBook';
 import { EditEntryModal } from './app/screens/EditEntryModal';
 import { Settings } from './app/screens/Settings';
 import { MonthlySummary } from './app/screens/MonthlySummary';
@@ -19,6 +20,7 @@ export type RootStackParamList = {
   Home: undefined;
   NewBook: undefined;
   BookDetail: { bookId: string };
+  EditBook: { bookId: string };
   EditEntryModal: { bookId: string; entry?: any };
   Settings: undefined;
   MonthlySummary: undefined;
@@ -81,6 +83,14 @@ export default function App() {
             }}
           />
           <Stack.Screen name="BookDetail" component={BookDetail} />
+          <Stack.Screen 
+            name="EditBook" 
+            component={EditBook}
+            options={{
+              presentation: 'modal',
+              animation: 'slide_from_bottom',
+            }}
+          />
           <Stack.Screen 
             name="EditEntryModal" 
             component={EditEntryModal}
